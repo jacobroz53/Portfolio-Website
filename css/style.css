@@ -1,0 +1,973 @@
+/* =============================================================================
+   [YOUR NAME] — Portfolio
+   Single page. Three themes. No frameworks.
+
+   THEME SYSTEM
+   Everything visual is a CSS custom property re-declared per theme on <body>.
+   Switching body[data-theme] crossfades the whole page over ~520ms.
+     copywriting -> cream (base theme)
+     passion     -> black
+     journal     -> creamy brown + texture + serif + pine green
+   ============================================================================= */
+
+/* ---------- 1. Tokens ---------- */
+:root,
+body[data-theme="copywriting"] {
+  --bg:        #f7f3ec;
+  --bg-elev:   #fffdf8;
+  --bg-sunk:   #efe9de;
+  --fg:        #17140f;
+  --fg-soft:   #5c5449;
+  --line:      rgba(23, 20, 15, .14);
+  --line-firm: rgba(23, 20, 15, .28);
+  --accent:    #17140f;
+  --on-accent: #fffdf8;
+  --shadow:    0 18px 40px -18px rgba(23, 20, 15, .30);
+  --shadow-lg: 0 -20px 60px -12px rgba(23, 20, 15, .34);
+  --font-page: var(--font-sans);
+  --font-head: var(--font-sans);
+  --head-track: -0.035em;
+  --head-weight: 700;
+  /* headline relief: a lit top edge + a soft shadow underneath */
+  --pop-hi: 0 -1px 0 rgba(255, 252, 245, .92);
+  --pop-lo: 0 3px 7px rgba(23, 20, 15, .17);
+}
+
+body[data-theme="passion"] {
+  --bg:        #08090a;
+  --bg-elev:   #17191c;
+  --bg-sunk:   #0f1113;
+  --fg:        #f4f2ee;
+  --fg-soft:   #a5a29c;
+  --line:      rgba(255, 255, 255, .16);
+  --line-firm: rgba(255, 255, 255, .34);
+  --accent:    #f4f2ee;
+  --on-accent: #08090a;
+  --shadow:    0 18px 40px -18px rgba(0, 0, 0, .8);
+  --shadow-lg: 0 -20px 60px -12px rgba(0, 0, 0, .75);
+  /* on black, relief comes from a carved dark edge + a faint glow, not a shadow */
+  --pop-hi: 0 1px 0 rgba(0, 0, 0, .95);
+  --pop-lo: 0 4px 14px rgba(244, 242, 238, .09);
+}
+
+body[data-theme="journal"] {
+  --bg:        #e9dfcb;
+  --bg-elev:   #f2ead9;
+  --bg-sunk:   #e0d4bb;
+  --fg:        #143529;       /* dark pine green */
+  --fg-soft:   #3f5c4b;
+  --line:      rgba(20, 53, 41, .20);
+  --line-firm: rgba(20, 53, 41, .40);
+  --accent:    #143529;
+  --on-accent: #f2ead9;
+  --shadow:    0 18px 40px -20px rgba(20, 53, 41, .35);
+  --shadow-lg: 0 -20px 60px -12px rgba(20, 53, 41, .35);
+  --font-page: var(--font-serif);
+  --font-head: var(--font-serif);
+  --head-track: -0.012em;
+  --head-weight: 600;
+  --pop-hi: 0 -1px 0 rgba(247, 241, 227, .85);
+  --pop-lo: 0 3px 7px rgba(20, 53, 41, .20);
+}
+
+:root {
+  /* Apple-style system stack first; Inter loads as the cross-platform fallback */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+               "Helvetica Neue", "Segoe UI", Inter, Roboto, Arial, sans-serif;
+  --font-serif: "Lora", Georgia, "Iowan Old Style", "Times New Roman", serif;
+
+  --wrap: 1180px;
+  --pad: clamp(20px, 5vw, 64px);
+  --radius: 18px;
+  --radius-lg: 26px;
+
+  /* Long-form reading blocks (journal bodies, project write-ups) stay left-aligned
+     inside their centered column — centred ragged prose is hard to read at length.
+     Want them centred too? Change this to: center */
+  --prose-align: left;
+
+  --ease: cubic-bezier(.4, 0, .2, 1);
+  --ease-out: cubic-bezier(.22, 1, .36, 1);
+  --theme-t: 520ms;          /* theme crossfade duration */
+}
+
+/* ---------- 2. Reset & base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+html[data-scroll="smooth"] { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-page);
+  font-size: clamp(16px, 1.05vw, 17.5px);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  text-align: center;          /* the whole page is centre-aligned */
+  transition: background-color var(--theme-t) var(--ease),
+              color var(--theme-t) var(--ease);
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-head);
+  font-weight: var(--head-weight);
+  letter-spacing: var(--head-track);
+  line-height: 1.05;
+  margin: 0;
+  text-wrap: balance;
+}
+
+p { margin: 0 0 1em; text-wrap: pretty; }
+img { max-width: 100%; height: auto; display: block; }
+button { font: inherit; color: inherit; }
+
+a { color: inherit; }
+
+:where(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+section { scroll-margin-top: 92px; }
+
+.skip-link {
+  position: fixed; top: 10px; left: 10px; z-index: 200;
+  padding: 10px 16px; border-radius: 999px;
+  background: var(--accent); color: var(--on-accent);
+  text-decoration: none; font-weight: 600; font-size: 14px;
+  transform: translateY(-160%);
+  transition: transform 220ms var(--ease-out);
+}
+.skip-link:focus-visible { transform: none; }
+
+/* ---------- 3. Journal texture layer ---------- */
+/* Soft warm washes only. There were two crossing 1px line gradients here as well
+   ("paper fibre"), but at that spacing they read as a fine grid rather than a
+   texture, so they're gone. Just the blotches now — no lines, no grid. */
+.texture {
+  position: fixed; inset: 0; z-index: 0;
+  pointer-events: none; opacity: 0;
+  transition: opacity var(--theme-t) var(--ease);
+  background-image:
+    radial-gradient(60% 45% at 12% 8%,  rgba(20, 53, 41, .09), transparent 70%),
+    radial-gradient(55% 40% at 88% 22%, rgba(146, 106, 58, .16), transparent 72%),
+    radial-gradient(70% 50% at 45% 96%, rgba(20, 53, 41, .10), transparent 70%);
+}
+body[data-theme="journal"] .texture { opacity: 1; }
+
+.nav, main, .footer, .sheet, .scrim { position: relative; z-index: 1; }
+
+/* ---------- 4. Nav ---------- */
+.nav {
+  position: sticky; top: 0; z-index: 50;
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  backdrop-filter: saturate(180%) blur(14px);
+  border-bottom: 1px solid var(--line);
+  transition: background-color var(--theme-t) var(--ease),
+              border-color var(--theme-t) var(--ease);
+}
+@supports not (background: color-mix(in srgb, red 50%, transparent)) {
+  .nav { background: var(--bg); }
+}
+
+.nav__inner {
+  /* full-bleed bar: the wordmark hugs the left edge rather than the content column */
+  max-width: none; margin: 0;
+  padding: 14px clamp(16px, 2vw, 26px);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;   /* mark | links | empty, so links sit dead centre */
+  align-items: center;
+  gap: 8px 16px;
+}
+
+.nav__mark {
+  justify-self: start;
+  text-decoration: none; line-height: 1.15; white-space: nowrap;
+  font-size: clamp(14px, 1.5vw, 16px); font-weight: 600;
+  letter-spacing: .04em; text-transform: uppercase;
+}
+
+.nav__links {
+  justify-self: center;
+  display: flex; justify-content: center; gap: clamp(2px, 1.5vw, 10px);
+}
+
+.nav__link {
+  position: relative;
+  text-decoration: none;
+  font-size: clamp(11.5px, 1.15vw, 12.5px); font-weight: 600;
+  text-transform: uppercase; letter-spacing: .12em;
+  padding: 8px 12px; border-radius: 999px;
+  color: var(--fg-soft);
+  transition: color 240ms var(--ease), background-color 240ms var(--ease);
+}
+.nav__link:hover { color: var(--fg); background: color-mix(in srgb, var(--fg) 7%, transparent); }
+.nav__link.is-active { color: var(--fg); }
+.nav__link.is-active::after {
+  content: ""; position: absolute; left: 12px; right: calc(12px + .12em); bottom: 2px;
+  height: 1.5px; background: currentColor; border-radius: 2px;
+}
+
+@media (max-width: 560px) {
+  .nav__inner { grid-template-columns: 1fr; }
+}
+
+/* ---------- 5. Shared layout bits ---------- */
+.hero, .portrait, .work, .about, .contact {
+  max-width: var(--wrap);
+  margin: 0 auto;
+  padding-inline: var(--pad);
+}
+
+.eyebrow {
+  font-family: var(--font-sans);
+  font-size: 12px; font-weight: 600;
+  letter-spacing: .16em; text-transform: uppercase;
+  color: var(--fg-soft);
+  margin: 0 0 24px;
+}
+
+.section-title {
+  font-size: clamp(30px, 5vw, 52px);
+  margin-bottom: 8px;
+}
+
+/* Scroll-reveal (JS adds .is-in) */
+.reveal { opacity: 0; transform: translateY(18px); }
+.reveal.is-in {
+  opacity: 1; transform: none;
+  transition: opacity 700ms var(--ease-out), transform 700ms var(--ease-out);
+}
+.hero .reveal.is-in { transition-delay: calc(var(--i, 0) * 80ms); }
+
+/* ---------- 6. Hero ---------- */
+.hero {
+  max-width: none;                            /* wider than the content column, */
+  padding-inline: clamp(20px, 3.2vw, 52px);   /* so the big headline isn't cramped */
+  min-height: min(62svh, 540px);
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  padding-top: clamp(36px, 7vh, 76px);
+  padding-bottom: clamp(30px, 5vh, 56px);
+}
+
+.hero__title {
+  font-size: clamp(36px, 6.4vw, 86px);
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+  padding: .06em .08em .16em;
+  margin: -.06em auto calc(clamp(22px, 2.8vw, 34px) - .16em);
+}
+/* ---- Raised headline -------------------------------------------------------
+   1. a top-lit bevel — white film at the top of each glyph, dark film at the foot
+   2. a lit edge + soft shadow around the whole line, so it sits above the page
+   The base layer is currentColor, so the fill still crossfades with the theme.
+   NOTE: the fill is a background clipped to the glyphs, and a background stops at
+   the element's box — hence the padding on .hero__title. Remove it and the
+   descenders (j, y, g) get sliced off. Keep any padding change in sync with the
+   negative margin beside it.
+   Want this on other headings? Add class="is-embossed" to them. ---------------- */
+.hero__title,
+.is-embossed {
+  filter: drop-shadow(var(--pop-hi)) drop-shadow(var(--pop-lo));
+  transition: filter var(--theme-t) var(--ease);
+}
+
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .hero__title,
+  .is-embossed {
+    background-image:
+      linear-gradient(180deg,
+        rgba(255, 255, 255, .18) 0%,
+        rgba(255, 255, 255, 0) 38%,
+        rgba(0, 0, 0, .06) 72%,
+        rgba(0, 0, 0, .16) 100%),
+      linear-gradient(currentColor, currentColor);
+    -webkit-background-clip: text;
+            background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+@media (forced-colors: active) {
+  .hero__title, .is-embossed {
+    background-image: none; -webkit-text-fill-color: currentColor; filter: none;
+  }
+}
+
+.hero__title span { display: block; }
+.hero__title em {
+  font-style: italic;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: .86em;
+  letter-spacing: -0.02em;
+}
+
+.hero__sub {
+  font-size: clamp(17px, 1.9vw, 22px);
+  line-height: 1.5;
+  max-width: 46ch;
+  color: var(--fg-soft);
+  margin: 0 auto 34px;
+  text-wrap: balance;
+}
+.hero__wink { display: block; margin-top: .5em; font-size: .82em; opacity: .8; }
+
+.hero__cta { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 14px 26px; border-radius: 999px;
+  background: var(--accent); color: var(--on-accent);
+  text-decoration: none; font-weight: 600; font-size: 15px;
+  font-family: var(--font-sans);
+  border: 1px solid var(--accent);
+  transition: transform 260ms var(--ease-out), opacity 260ms var(--ease),
+              background-color var(--theme-t) var(--ease),
+              color var(--theme-t) var(--ease),
+              border-color var(--theme-t) var(--ease);
+}
+.btn:hover { transform: translateY(-2px); opacity: .9; }
+.btn--ghost { background: transparent; color: var(--fg); border-color: var(--line-firm); }
+.btn--ghost:hover { background: color-mix(in srgb, var(--fg) 7%, transparent); opacity: 1; }
+
+.hero__scroll {
+  margin-top: clamp(30px, 6vh, 64px);
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  font-family: var(--font-sans);
+  font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--fg-soft);
+}
+.hero__scroll i {
+  display: block; width: 46px; height: 1px; background: currentColor;
+  transform-origin: center; animation: slide 2.4s var(--ease) infinite;
+}
+@keyframes slide { 0%,100% { transform: scaleX(.4); } 50% { transform: scaleX(1); } }
+
+/* ---------- 7. Portrait ---------- */
+.portrait {
+  max-width: none;              /* full-bleed: ignore the 1180px content column */
+  padding-inline: 0;
+  padding-block: clamp(20px, 3.5vw, 48px) clamp(18px, 3.5vw, 40px);
+}
+
+.portrait__figure {
+  margin: 0;
+  display: flex; flex-direction: column; align-items: center;
+  gap: clamp(24px, 4vw, 46px);
+}
+
+/* Gray placeholder box — delete once a real <img> is in place */
+.ph {
+  width: min(100%, 837px);      /* 837 x 471 */
+  aspect-ratio: 837 / 471;
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--line-firm);
+  background:
+    repeating-linear-gradient(45deg,
+      color-mix(in srgb, var(--fg) 6%, transparent) 0 12px,
+      transparent 12px 24px),
+    var(--bg-sunk);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; text-align: center; padding: 24px;
+  transition: background-color var(--theme-t) var(--ease), border-color var(--theme-t) var(--ease);
+}
+.ph__tag {
+  font-family: var(--font-sans);
+  font-size: 12px; font-weight: 700; letter-spacing: .18em;
+  padding: 7px 12px; border-radius: 999px;
+  background: var(--accent); color: var(--on-accent);
+}
+.ph__note {
+  font-family: var(--font-sans);
+  font-size: 13px; color: var(--fg-soft); max-width: 36ch;
+}
+
+.portrait__figure img {
+  width: 100%; max-width: none;
+  max-height: 88svh;            /* never taller than the screen on big monitors */
+  object-fit: cover;
+  border-radius: 0;             /* square corners, since it touches both edges */
+}
+
+.portrait__caption h2 { font-size: clamp(24px, 3.4vw, 40px); margin: 0 auto 14px; max-width: 20ch; }
+.portrait__caption p { color: var(--fg-soft); max-width: 42ch; margin: 0 auto; text-wrap: balance; }
+
+/* ---------- 8. Work + segmented toggle ---------- */
+.work { padding-block: clamp(24px, 4vw, 50px) clamp(50px, 9vw, 110px); }
+.work__head { margin-bottom: clamp(28px, 4vw, 48px); }
+
+.segmented {
+  position: relative;
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 4px; padding: 5px;
+  margin: 26px auto 22px;
+  width: min(100%, 460px);
+  border-radius: 999px;
+  background: var(--bg-sunk);
+  border: 1px solid var(--line);
+  transition: background-color var(--theme-t) var(--ease), border-color var(--theme-t) var(--ease);
+}
+
+.segmented__pill {
+  position: absolute; top: 5px; bottom: 5px; left: 0;
+  width: 0; border-radius: 999px;
+  background: var(--bg-elev);
+  box-shadow: 0 2px 10px -3px rgba(0, 0, 0, .3);
+  transition: transform 460ms var(--ease-out), width 460ms var(--ease-out),
+              background-color var(--theme-t) var(--ease);
+  will-change: transform;
+}
+
+.segmented__btn {
+  position: relative; z-index: 1;
+  appearance: none; background: none; border: 0; cursor: pointer;
+  padding: 11px 8px; border-radius: 999px;
+  font-family: var(--font-sans);
+  font-size: clamp(12.5px, 1.5vw, 14px); font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--fg-soft);
+  transition: color 300ms var(--ease);
+}
+.segmented__btn[aria-selected="true"] { color: var(--fg); }
+.segmented__btn:hover { color: var(--fg); }
+
+.lbl-short { display: none; }
+@media (max-width: 430px) {
+  .lbl-full { display: none; }
+  .lbl-short { display: inline; }
+}
+
+.work__intro {
+  max-width: 52ch; color: var(--fg-soft);
+  font-size: clamp(15.5px, 1.6vw, 18px);
+  margin: 0 auto;
+  text-wrap: balance;
+}
+
+/* ---- "The Work" flips between typefaces when you switch tabs ---------------
+   Fonts can't be interpolated, so a straight swap is a hard cut. Instead each
+   letter blurs out, tips away on its X axis, and comes back — and the typeface
+   is exchanged at the midpoint, while the letters are invisible. That's why the
+   heading keys off data-headfont (swapped mid-animation by js/main.js) rather
+   than data-theme (swapped instantly, so the page colours still crossfade at
+   once). font-size is transitioned too, so the box grows smoothly rather than
+   jolting the content below.
+   -------------------------------------------------------------------------- */
+#work-title {
+  perspective: 700px;
+  /* Declared once, here. The Passion block must not redeclare `transition` —
+     doing so drops font-size from the list and the heading snaps instead of
+     growing, which is exactly the jump this comment exists to prevent. */
+  transition: font-size 460ms var(--ease),
+              padding 460ms var(--ease),
+              transform 300ms var(--ease-out),
+              color var(--theme-t) var(--ease);
+}
+#work-title .ltr {
+  display: inline-block;
+  transform-origin: 50% 60%;
+}
+#work-title.is-flip .ltr {
+  animation: ltr-flip 620ms var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 22ms);
+}
+
+@keyframes ltr-flip {
+  0%   { opacity: 1; filter: blur(0);    transform: translateY(0)     rotateX(0deg)   scale(1); }
+  42%  { opacity: 0; filter: blur(12px); transform: translateY(-15px) rotateX(62deg)  scale(.92); }
+  58%  { opacity: 0; filter: blur(12px); transform: translateY(15px)  rotateX(-62deg) scale(.92); }
+  100% { opacity: 1; filter: blur(0);    transform: translateY(0)     rotateX(0deg)   scale(1); }
+}
+
+/* which face the heading wears — changed at the midpoint of the flip */
+body[data-headfont="copywriting"] #work-title { font-family: var(--font-sans); }
+body[data-headfont="journal"]     #work-title { font-family: var(--font-serif); }
+
+@media (prefers-reduced-motion: reduce) {
+  #work-title.is-flip .ltr { animation: none; }
+  #work-title { transition: none; }
+}
+
+/* ---- After hours: "The Work" becomes a neon sign in the Passion theme ------
+   Built to match a photograph of a real sign. What makes it read as glass
+   rather than glowing text:
+
+   1. A THIN MONOLINE SCRIPT. This is the whole trick. A real tube is a
+      constant-width line, so the white core stays hairline-thin and the colour
+      rings it. A thick brush face just fills with white and looks like plastic.
+   2. Layered shadows at increasing radius — a 1px white core, then saturated
+      magenta close in, then wide deep-pink bloom, then a far violet wash. Real
+      neon shifts hue as it falls off; a single blurred colour never does.
+   3. Light spilling onto the wall behind (the ::before wash), which dims with
+      the tube because it is painted inside the element the flicker fades.
+   4. A blurred, mirrored reflection below, like the one on the wall in the
+      reference photo.
+   5. A small perspective tilt toward the pointer, so it sits in space.
+
+   The script face is lazy-loaded by js/main.js on first visit to the tab.
+   -------------------------------------------------------------------------- */
+.neon {
+  position: relative;
+  transition: margin-bottom 460ms var(--ease);
+}
+.neon__reflection { display: none; }
+
+/* ---- Geometry follows data-theme, appearance follows data-headfont ---------
+   This split is what keeps the switch from jolting. Size and spacing must NOT
+   wait for the mid-flip typeface swap: if they do, the heading grows in a single
+   frame ~390ms after the click and knocks the toggle 80px down the page. Keyed
+   to data-theme they start easing the instant you click, in step with the colour
+   crossfade, and most of the growth happens while the letters are blurred out.
+   -------------------------------------------------------------------------- */
+body[data-theme="passion"] .neon { margin-bottom: 1.2rem; }
+
+body[data-theme="passion"] #work-title {
+  font-size: clamp(56px, 8.5vw, 112px);   /* script faces run small for their size */
+  line-height: 1.1;
+  letter-spacing: .02em;
+  padding-block: .06em .12em;
+}
+
+body[data-theme="passion"] .neon__reflection {
+  font-size: clamp(56px, 8.5vw, 112px);
+  line-height: 1.1;
+  letter-spacing: .02em;
+}
+
+/* ---- the sign itself, swapped in under the blur --------------------------- */
+body[data-headfont="passion"] .neon { perspective: 900px; }
+
+body[data-headfont="passion"] #work-title {
+  --core:  #fff4f9;      /* the hot centre of the tube  */
+  --tube:  #ff2f87;      /* the gas colour              */
+  --deep:  #d1006d;      /* bloom just off the glass    */
+  --far:   #7b2c9e;      /* the violet wash further out */
+
+  position: relative;
+  font-family: "Allura", "Snell Roundhand", "Brush Script MT", cursive;
+  font-weight: 400;
+  color: var(--core);
+
+  text-shadow:
+    0 0 1px   #fff,
+    0 0 4px   #fff,
+    0 0 9px   var(--tube),
+    0 0 18px  var(--tube),
+    0 0 34px  var(--deep),
+    0 0 66px  var(--deep),
+    0 0 118px var(--far);
+
+  transform: rotateX(var(--nrx, 0deg)) rotateY(var(--nry, 0deg));
+  transform-style: preserve-3d;
+  animation: neon-strike 1150ms steps(1, end) both;
+}
+
+/* the light the sign throws onto the wall behind it */
+body[data-headfont="passion"] #work-title::before {
+  content: "";
+  position: absolute; z-index: -1;
+  left: 50%; top: 50%;
+  /* stays within the heading's own width — at 128% it pushed past the viewport
+     and gave the page a horizontal scrollbar */
+  width: 100%; height: 300%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+
+  /* `closest-side` is doing the important work here. Left to its default
+     (farthest-corner) the ellipse is scaled to reach the box's CORNERS, which
+     puts its left and right edges at only ~71% of the gradient — still faintly
+     tinted when the box stops, so the wash ended in visible vertical lines.
+     closest-side sizes the ellipse to touch all four sides, so the last stop
+     lands exactly on the edge and it fades to nothing before the box ends. */
+  background:
+    radial-gradient(ellipse closest-side at center,
+      rgba(255, 47, 135, .30) 0%,
+      rgba(214, 0, 112, .17) 26%,
+      rgba(168, 26, 142, .08) 48%,
+      rgba(123, 44, 158, .03) 72%,
+      rgba(123, 44, 158, .008) 88%,
+      transparent 100%);
+}
+
+/* reflection on the wall below — mirrored, blurred, fading out as it falls */
+body[data-headfont="passion"] .neon__reflection {
+  display: block;
+  /* out of flow — as a block it reserved a full line of empty height under the
+     sign and pushed the toggle miles down */
+  position: absolute;
+  left: 0; right: 0;
+  top: calc(100% - .30em);       /* tuck it up under the letter baselines */
+
+  font-family: "Allura", "Snell Roundhand", "Brush Script MT", cursive;
+  color: #ff5ea3;
+  text-shadow: 0 0 12px rgba(255, 47, 135, .8), 0 0 34px rgba(209, 0, 109, .5);
+  transform: scaleY(-1);
+  transform-origin: top;
+  opacity: .20;
+  filter: blur(3px);
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to top, #000 8%, transparent 62%);
+          mask-image: linear-gradient(to top, #000 8%, transparent 62%);
+}
+
+@keyframes neon-strike {
+  0%, 11%   { opacity: .10; }
+  13%       { opacity: 1; }
+  17%       { opacity: .18; }
+  21%       { opacity: 1; }
+  26%       { opacity: .32; }
+  31%       { opacity: 1; }
+  36%       { opacity: .60; }
+  40%, 100% { opacity: 1; }
+}
+
+/* Panel entry animation on tab switch */
+.panel { animation: panel-in 520ms var(--ease-out) both; }
+@keyframes panel-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+.panel:focus-visible { outline-offset: 8px; }
+
+/* ---------- 9. Tiles ---------- */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: clamp(14px, 1.8vw, 22px);
+  align-items: stretch; justify-items: center; justify-content: center;
+}
+/* keeps a 1- or 2-tile grid from stretching into a billboard */
+.tiles .tile3d { max-width: 560px; width: 100%; }
+
+/* ---- 3D tilt ---------------------------------------------------------------
+   Ported from the Aceternity 3D card. The wrapper supplies the perspective, the
+   tile rotates inside it toward the pointer, and each block of content sits at
+   its own depth so the card separates into layers as it turns.
+   js/main.js writes --rx/--ry on pointermove; everything else is CSS.
+   -------------------------------------------------------------------------- */
+.tile3d {
+  perspective: 1000px;
+  display: flex;
+}
+
+.tile {
+  --tile-lift: 0;
+  appearance: none; cursor: pointer; text-align: center;
+  display: flex; flex-direction: column; gap: 12px;
+  min-height: 260px;
+  --tile-pad: clamp(20px, 2.4vw, 28px);
+  padding: var(--tile-pad);
+  border-radius: var(--radius-lg);
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  color: var(--fg);
+  transform: translateY(var(--tile-lift)) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transform-style: preserve-3d;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
+  transition: transform 180ms var(--ease-out), box-shadow 340ms var(--ease-out),
+              border-color 340ms var(--ease),
+              background-color var(--theme-t) var(--ease),
+              color var(--theme-t) var(--ease);
+}
+.tile:hover, .tile:focus-visible {
+  --tile-lift: -6px;
+  box-shadow: var(--shadow);
+  border-color: var(--line-firm);
+}
+.tile:active { --tile-lift: -2px; }
+
+.tile__eyebrow {
+  font-family: var(--font-sans);
+  font-size: 11px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase;
+  color: var(--fg-soft);
+}
+.tile__title {
+  font-size: clamp(20px, 2.2vw, 25px);
+  line-height: 1.12;
+  max-width: 22ch; margin-inline: auto;
+}
+.tile__summary {
+  color: var(--fg-soft); font-size: 15px; line-height: 1.5;
+  margin: 0 auto; max-width: 34ch;
+}
+.tile__foot {
+  margin-top: auto; padding-top: 14px;
+  width: 100%;
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  border-top: 1px solid var(--line);
+  font-family: var(--font-sans); font-size: 13px; color: var(--fg-soft);
+}
+.tile__arrow {
+  display: inline-grid; place-items: center;
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 1px solid var(--line-firm);
+  transition: transform 340ms var(--ease-out), background-color 340ms var(--ease), color 340ms var(--ease);
+}
+.tile:hover .tile__arrow, .tile:focus-visible .tile__arrow {
+  transform: translateY(-3px);
+  background: var(--accent); color: var(--on-accent);
+}
+
+/* Depth is applied only on hover/focus, so a grid at rest still reads as flat
+   cards rather than slightly-enlarged ones. */
+@media (hover: hover) and (pointer: fine) {
+  .tile > * {
+    transform: translateZ(0);
+    transition: transform 220ms var(--ease-out);
+  }
+  .tile3d:hover .tile > *,
+  .tile:focus-visible > * {
+    transform: translateZ(var(--z, 0));
+  }
+  .tile__head    { --z: 26px; }
+  .tile__title   { --z: 46px; }
+  .tile__summary { --z: 34px; }
+  .tile__foot    { --z: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile { transform: translateY(var(--tile-lift)); }
+  .tile > * { transform: none !important; }
+}
+
+/* ---- Card image slot ------------------------------------------------------
+   Bleeds to the card's edges by cancelling the tile padding, so the picture sits
+   flush under the rounded top corners rather than floating in a frame.
+   With no image set it renders a labelled placeholder box instead.
+   -------------------------------------------------------------------------- */
+.tile__media {
+  width: auto;
+  margin: calc(var(--tile-pad) * -1) calc(var(--tile-pad) * -1) 4px;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: calc(var(--radius-lg) - 1px) calc(var(--radius-lg) - 1px) 0 0;
+  background: var(--bg-sunk);
+  display: grid;
+  place-items: center;
+  transition: background-color var(--theme-t) var(--ease);
+}
+.tile__media img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.tile__media--empty {
+  border-bottom: 1px dashed var(--line);
+}
+
+/* Small "[PLACEHOLDER]" chip used on tiles + journal entries */
+.chip {
+  display: inline-block;
+  font-family: var(--font-sans);
+  font-size: 10.5px; font-weight: 700; letter-spacing: .12em;
+  padding: 4px 9px; border-radius: 999px;
+  border: 1px dashed var(--line-firm);
+  color: var(--fg-soft);
+  white-space: nowrap;
+}
+
+/* ---------- 10. Journal ---------- */
+/* Entries render as cards in the shared .tiles grid; the full text opens in the
+   bottom sheet. The old inline feed styles (.journal / .entry) are gone with it.
+   Long-form prose inside the sheet still respects --prose-align. */
+
+/* ---------- 11. About / Contact / Footer ---------- */
+.about, .contact { padding-block: clamp(50px, 9vw, 110px); }
+
+.about__grid {
+  margin-top: 34px;
+  display: flex; flex-direction: column; align-items: center;
+  gap: clamp(30px, 4vw, 52px);
+}
+
+.about__body .lede { font-size: clamp(19px, 2.2vw, 26px); line-height: 1.4; color: var(--fg); max-width: 32ch; margin-inline: auto; }
+.about__body p { color: var(--fg-soft); max-width: 56ch; margin-inline: auto; text-wrap: balance; }
+
+.about__facts {
+  margin: 0; width: min(100%, 620px);
+  display: grid; gap: 1px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: background-color var(--theme-t) var(--ease), border-color var(--theme-t) var(--ease);
+}
+.about__facts > div { padding: 18px 14px; background: var(--bg); transition: background-color var(--theme-t) var(--ease); }
+.about__facts dt { font-family: var(--font-sans); font-size: 11px; letter-spacing: .13em; text-transform: uppercase; color: var(--fg-soft); margin-bottom: 6px; }
+.about__facts dd { margin: 0; font-size: 15px; }
+
+.contact__line { max-width: 48ch; color: var(--fg-soft); font-size: clamp(17px, 1.9vw, 21px); margin: 18px auto 34px; text-wrap: balance; }
+
+.contact__list { list-style: none; margin: 0 auto; padding: 0; max-width: 620px; }
+.contact__list li { border-top: 1px solid var(--line); }
+.contact__list li:last-child { border-bottom: 1px solid var(--line); }
+.contact__list a {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  padding: 20px 4px; text-decoration: none;
+  font-size: clamp(18px, 2.4vw, 26px);
+  letter-spacing: -0.02em;
+  transition: gap 300ms var(--ease-out), opacity 300ms var(--ease);
+}
+.contact__list a:hover { gap: 22px; opacity: .7; }
+.contact__list span { font-size: .8em; }
+
+.footer {
+  max-width: var(--wrap); margin: 0 auto;
+  padding: 30px var(--pad) 46px;
+  border-top: 1px solid var(--line);
+  display: flex; flex-wrap: wrap; gap: 8px 26px; justify-content: center;
+  font-family: var(--font-sans); font-size: 13px; color: var(--fg-soft);
+}
+.footer p { margin: 0; }
+.footer a { text-decoration: none; }
+.footer a:hover { color: var(--fg); }
+
+/* ---------- 12. Bottom sheet ---------- */
+.scrim {
+  position: fixed; inset: 0; z-index: 60;
+  background: rgba(8, 9, 10, .5);
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+  opacity: 0; transition: opacity 420ms var(--ease);
+}
+.scrim.is-open { opacity: 1; }
+
+.sheet {
+  position: fixed; z-index: 70;
+  left: 0; right: 0; bottom: 0;
+  width: min(100%, 860px); margin: 0 auto;
+  max-height: min(92svh, 1000px);
+  display: flex; flex-direction: column;
+  background: var(--bg-elev);
+  color: var(--fg);
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: var(--shadow-lg);
+  transform: translateY(101%);
+  visibility: hidden;
+  transition: transform 560ms var(--ease-out),
+              visibility 0s linear 560ms,
+              background-color var(--theme-t) var(--ease),
+              color var(--theme-t) var(--ease);
+}
+.sheet.is-open {
+  transform: translateY(0);
+  visibility: visible;
+  transition: transform 560ms var(--ease-out),
+              visibility 0s linear 0s,
+              background-color var(--theme-t) var(--ease),
+              color var(--theme-t) var(--ease);
+}
+
+.sheet__grab {
+  width: 44px; height: 4px; border-radius: 999px;
+  background: var(--line-firm);
+  margin: 12px auto 0; flex: none;
+}
+
+.sheet__close {
+  position: absolute; top: 14px; right: 14px;
+  width: 40px; height: 40px; display: grid; place-items: center;
+  border-radius: 50%; cursor: pointer;
+  background: color-mix(in srgb, var(--fg) 8%, transparent);
+  border: 1px solid transparent;
+  transition: background-color 240ms var(--ease), transform 240ms var(--ease-out);
+}
+.sheet__close:hover { background: color-mix(in srgb, var(--fg) 16%, transparent); transform: rotate(90deg); }
+
+.sheet__scroll {
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: clamp(26px, 4vw, 44px) clamp(20px, 4vw, 56px) clamp(40px, 6vw, 64px);
+  padding-bottom: max(clamp(40px, 6vw, 64px), env(safe-area-inset-bottom));
+}
+
+.sheet__eyebrow {
+  font-family: var(--font-sans);
+  font-size: 11px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--fg-soft); margin: 0 0 12px;
+  padding-inline: 52px;   /* keeps long text clear of the close button */
+}
+.sheet__title {
+  font-size: clamp(26px, 4.4vw, 46px);
+  margin: 0 auto 18px; max-width: 20ch;
+  padding-inline: 52px;
+}
+
+.sheet__tags { list-style: none; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 0 0 22px; padding: 0; }
+.sheet__tags li {
+  font-family: var(--font-sans); font-size: 12px; font-weight: 500;
+  padding: 6px 12px; border-radius: 999px;
+  border: 1px solid var(--line); color: var(--fg-soft);
+}
+
+.sheet__meta {
+  margin: 0 0 26px; padding: 0;
+  display: grid; gap: 0;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  border-top: 1px solid var(--line);
+}
+.sheet__meta > div { padding: 14px 12px; border-bottom: 1px solid var(--line); }
+.sheet__meta dt {
+  font-family: var(--font-sans); font-size: 11px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--fg-soft); margin-bottom: 5px;
+}
+.sheet__meta dd { margin: 0; font-size: 15.5px; }
+
+.sheet__body {
+  max-width: 62ch; margin: 0 auto;
+  font-size: clamp(16px, 1.7vw, 18px); line-height: 1.7;
+  text-align: var(--prose-align);
+}
+.sheet__body h3 {
+  font-size: 13px; font-family: var(--font-sans); font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--fg-soft);
+  margin: 30px 0 12px;
+  text-align: center;
+}
+.sheet__body ul { margin: 0 auto 1.2em; padding-left: 1.15em; display: table; }
+.sheet__body li { margin-bottom: .5em; }
+
+.sheet__excerpt {
+  margin: 26px 0; padding: clamp(18px, 3vw, 26px);
+  border-radius: var(--radius);
+  background: var(--bg-sunk);
+  border-left: 3px solid var(--line-firm);
+}
+.sheet__excerpt h3 { margin-top: 0; }
+.sheet__excerpt p { margin: 0 0 .7em; }
+.sheet__excerpt p:last-child { margin: 0; }
+.sheet__excerpt strong { font-weight: 600; }
+
+.sheet__linkrow { text-align: center; margin: 22px 0 0; }
+.sheet__link {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-sans); font-weight: 600; font-size: 15px;
+}
+
+body.is-locked { overflow: hidden; }
+
+@media (max-width: 620px) {
+  .sheet { max-height: 90svh; }
+  .sheet__scroll { padding-top: 20px; }
+}
+
+/* ---------- 13. Motion preferences ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html[data-scroll="smooth"] { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+  .reveal { opacity: 1; transform: none; }
+  .sheet { transition: visibility 0s; }
+}

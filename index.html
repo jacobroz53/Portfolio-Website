@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" data-scroll="smooth">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+<!-- ============================================================
+     EDIT ME: page title + meta description (shows in Google / link previews)
+     ============================================================ -->
+<title>Jacob Roz — Copywriter</title>
+<meta name="description" content="Portfolio of Jacob Roz, copywriter. Campaigns, product copy, passion projects, and a journal.">
+<meta name="theme-color" content="#f7f3ec">
+
+<!-- Two web fonts only: Inter (sans fallback) + Lora (journal serif) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap">
+
+<link rel="stylesheet" href="css/style.css">
+
+<!-- If JS is off, show everything rather than a page of invisible elements -->
+<noscript><style>.reveal{opacity:1 !important;transform:none !important}</style></noscript>
+</head>
+
+<!-- data-theme drives the palette immediately; data-headfont drives the "The Work"
+     typeface and is swapped mid-flip by js/main.js so the change is hidden -->
+<body data-theme="copywriting" data-headfont="copywriting">
+
+<a class="skip-link" href="#work">Skip to the work</a>
+
+<!-- Journal-only paper texture (CSS gradients, zero image weight) -->
+<div class="texture" aria-hidden="true"></div>
+
+<!-- ============================== NAV ============================== -->
+<header class="nav" id="top">
+  <div class="nav__inner">
+    <!-- EDIT ME: your name / wordmark -->
+    <a class="nav__mark" href="#top">Jacob Roz</a>
+
+    <nav class="nav__links" aria-label="Primary">
+      <a href="#work" class="nav__link is-active">Work</a>
+      <a href="#about" class="nav__link">About</a>
+      <a href="#contact" class="nav__link">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- ============================== HERO ============================== -->
+  <section class="hero" aria-labelledby="hero-title">
+    <!-- EDIT ME (or don't — it's doing a lot of work) -->
+    <h1 class="hero__title" id="hero-title">
+      <span class="reveal">I'm a writer, creator, and marketer</span>
+      <span class="reveal">just trying to do great work.</span>
+    </h1>
+  </section>
+
+  <!-- ============================== PORTRAIT ============================== -->
+  <section class="portrait">
+    <figure class="portrait__figure reveal">
+
+      <!-- ============================================================
+           PLACEHOLDER PHOTO — standing in until the real shot is ready.
+           It runs full-bleed, so it needs to be wide: replace the three files
+           in /img (900, 1400 and 2048px wide, all 16:9), then rewrite the alt
+           text to describe the new image.
+           The old dashed grey box is gone, but its .ph styles are still in
+           css/style.css if you ever want it back.
+           ============================================================ -->
+      <img
+        src="img/croatia-beach-1400.jpg"
+        srcset="img/croatia-beach-900.jpg 900w,
+                img/croatia-beach-1400.jpg 1400w,
+                img/croatia-beach-2048.jpg 2048w"
+        sizes="100vw"
+        alt="A Croatian coastal town seen across turquoise water from the end of a rocky breakwater, with a mountain range rising behind the rooftops"
+        width="2048" height="1152">
+    </figure>
+  </section>
+
+  <!-- ============================== THE WORK ============================== -->
+  <section class="work" id="work" aria-labelledby="work-title">
+
+    <div class="work__head">
+      <!-- The Passion theme turns this heading into a neon sign. The extra span is
+           the reflection on the wall below it; js/main.js fills it from the <h2>
+           so the text only ever lives in one place. -->
+      <div class="neon">
+        <h2 class="section-title reveal" id="work-title">The Work</h2>
+        <span class="neon__reflection" aria-hidden="true"></span>
+      </div>
+
+      <!-- 3-way segmented toggle — the heart of the site -->
+      <div class="segmented reveal" role="tablist" aria-label="Choose a body of work">
+        <span class="segmented__pill" aria-hidden="true"></span>
+
+        <button class="segmented__btn" role="tab" type="button"
+                id="tab-copywriting" aria-controls="panel-copywriting" aria-selected="true"
+                data-theme-key="copywriting">
+          <span class="lbl-full">Copywriting</span><span class="lbl-short">Copy</span>
+        </button>
+
+        <button class="segmented__btn" role="tab" type="button"
+                id="tab-passion" aria-controls="panel-passion" aria-selected="false" tabindex="-1"
+                data-theme-key="passion">
+          <span class="lbl-full">Passion Projects</span><span class="lbl-short">Passion</span>
+        </button>
+
+        <button class="segmented__btn" role="tab" type="button"
+                id="tab-journal" aria-controls="panel-journal" aria-selected="false" tabindex="-1"
+                data-theme-key="journal">
+          <span class="lbl-full">Journal</span><span class="lbl-short">Journal</span>
+        </button>
+      </div>
+
+      <!-- Intro copy per tab — text lives in js/work-data.js (WORK_COPY) -->
+      <p class="work__intro" id="work-intro" aria-live="polite"></p>
+    </div>
+
+    <!-- PANEL 1 — Copywriting (tiles rendered from js/work-data.js) -->
+    <div class="panel" id="panel-copywriting" role="tabpanel" aria-labelledby="tab-copywriting" tabindex="0">
+      <div class="tiles" id="tiles-copywriting"></div>
+    </div>
+
+    <!-- PANEL 2 — Passion Projects (tiles rendered from js/work-data.js) -->
+    <div class="panel" id="panel-passion" role="tabpanel" aria-labelledby="tab-passion" tabindex="0" hidden>
+      <div class="tiles" id="tiles-passion"></div>
+    </div>
+
+    <!-- PANEL 3 — Journal (entries rendered from js/journal-data.js) -->
+    <div class="panel" id="panel-journal" role="tabpanel" aria-labelledby="tab-journal" tabindex="0" hidden>
+      <div class="tiles" id="journal-feed"></div>
+    </div>
+
+  </section>
+
+  <!-- ============================== ABOUT ============================== -->
+  <section class="about" id="about" aria-labelledby="about-title">
+    <h2 class="section-title reveal" id="about-title">About</h2>
+
+    <div class="about__grid">
+      <!-- EDIT ME: replace the placeholder bio below with your real one -->
+      <div class="about__body reveal">
+        <p class="lede">[PLACEHOLDER BIO] I'm a copywriter who believes the difference between
+          "fine" and "unforgettable" is usually about four words and the willingness to delete twelve.</p>
+        <p>[PLACEHOLDER] Two or three sentences on where you've worked, what kinds of brands you like,
+          and the sort of problems you're best at solving. Keep it human. Keep it short.</p>
+        <p>[PLACEHOLDER] One sentence on what you're looking for right now — full-time role, freelance,
+          or both — so the person reading knows exactly what to do next.</p>
+      </div>
+
+      <!-- EDIT ME: swap these for your real skills / tools / focus areas -->
+      <dl class="about__facts reveal">
+        <div><dt>Based in</dt><dd>[PLACEHOLDER — City]</dd></div>
+        <div><dt>Looking for</dt><dd>Full-time roles &amp; select freelance</dd></div>
+        <div><dt>Writes</dt><dd>Brand, campaign, email, product, long-form</dd></div>
+        <div><dt>Also does</dt><dd>Strategy, naming, tone-of-voice systems</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ============================== CONTACT ============================== -->
+  <section class="contact" id="contact" aria-labelledby="contact-title">
+    <h2 class="section-title reveal" id="contact-title">Contact</h2>
+    <p class="contact__line reveal">Got a brief, a role, or a sentence that isn't working?
+      Send it over. I reply faster than most people expect and more thoroughly than most people want.</p>
+
+    <!-- EDIT ME: your real email + links. Delete any row you don't use. -->
+    <ul class="contact__list reveal">
+      <li><a href="mailto:you@example.com">you@example.com <span aria-hidden="true">→</span></a></li>
+      <li><a href="#" >LinkedIn <span aria-hidden="true">→</span></a></li>
+      <li><a href="#">Instagram <span aria-hidden="true">→</span></a></li>
+      <li><a href="#">Download CV (PDF) <span aria-hidden="true">→</span></a></li>
+    </ul>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <p>© <span id="year"></span> Jacob Roz. Every word on this page was chosen on purpose.</p>
+  <a href="#top">Back to the top ↑</a>
+</footer>
+
+<!-- ============================== BOTTOM SHEET ============================== -->
+<div class="scrim" id="scrim" hidden></div>
+
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" aria-hidden="true">
+  <div class="sheet__grab" aria-hidden="true"></div>
+
+  <button class="sheet__close" id="sheet-close" type="button" aria-label="Close project details">
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+      <path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+    </svg>
+  </button>
+
+  <div class="sheet__scroll" id="sheet-scroll">
+    <p class="sheet__eyebrow" id="sheet-eyebrow"></p>
+    <h2 class="sheet__title" id="sheet-title"></h2>
+    <ul class="sheet__tags" id="sheet-tags"></ul>
+    <dl class="sheet__meta" id="sheet-meta"></dl>
+    <div class="sheet__body" id="sheet-body"></div>
+  </div>
+</div>
+
+<!-- Data files first, then the app -->
+<script src="js/work-data.js"></script>
+<script src="js/journal-data.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
