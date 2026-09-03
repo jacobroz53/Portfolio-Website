@@ -393,6 +393,7 @@
 
   window.addEventListener('resize', function () {
     movePill(tabs.filter(function (t) { return t.getAttribute('aria-selected') === 'true'; })[0]);
+    if (sheetOpen) { updateScrollEnd(); }
   });
 
   /* ---------------------------------------------------------------------------
@@ -433,6 +434,19 @@
   var sheetOpen  = false;
 
   var FOCUSABLE = 'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+  /* Clears the bottom fade once there's nothing left to scroll to, so a short
+     entry doesn't look like it's been cut off. */
+  function updateScrollEnd() {
+    if (!sheetScroll) { return; }
+    var reachedEnd = sheetScroll.scrollTop + sheetScroll.clientHeight >= sheetScroll.scrollHeight - 4;
+    var fitsAlready = sheetScroll.scrollHeight <= sheetScroll.clientHeight + 4;
+    sheet.classList.toggle('is-end', reachedEnd || fitsAlready);
+  }
+
+  if (sheetScroll) {
+    sheetScroll.addEventListener('scroll', updateScrollEnd, { passive: true });
+  }
 
   function lockScroll(lock) {
     if (lock) {
@@ -513,6 +527,7 @@
     });
 
     sheetScroll.scrollTop = 0;
+    requestAnimationFrame(updateScrollEnd);          /* after the content is in */
     window.setTimeout(function () { closeBtn.focus(); }, reduceMotion ? 0 : 120);
   }
 

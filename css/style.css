@@ -452,7 +452,7 @@ body[data-theme="journal"] .texture { opacity: 1; }
   text-wrap: balance;
 }
 
-/* ---- "The Work" flips between typefaces when you switch tabs ---------------
+/* ---- "My Work" flips between typefaces when you switch tabs ---------------
    Fonts can't be interpolated, so a straight swap is a hard cut. Instead each
    letter blurs out, tips away on its X axis, and comes back — and the typeface
    is exchanged at the midpoint, while the letters are invisible. That's why the
@@ -496,7 +496,7 @@ body[data-headfont="journal"]     #work-title { font-family: var(--font-serif); 
   #work-title { transition: none; }
 }
 
-/* ---- After hours: "The Work" becomes a neon sign in the Passion theme ------
+/* ---- After hours: "My Work" becomes a neon sign in the Passion theme ------
    Built to match a photograph of a real sign. What makes it read as glass
    rather than glowing text:
 
@@ -841,34 +841,59 @@ body[data-headfont="passion"] .neon__reflection {
 .scrim.is-open { opacity: 1; }
 
 .sheet {
+  /* A floating window, centred in the viewport with air on every side, rather
+     than a panel welded to the bottom edge. Rounded on all four corners, and it
+     ends against the page instead of being sliced off by the screen. */
   position: fixed; z-index: 70;
-  left: 0; right: 0; bottom: 0;
-  width: min(100%, 860px); margin: 0 auto;
-  max-height: min(92svh, 1000px);
+  left: 50%; top: 50%;
+  width: min(100% - 2 * clamp(16px, 4vw, 60px), 960px);
+  max-height: min(86svh, 940px);
   display: flex; flex-direction: column;
   background: var(--bg-elev);
   color: var(--fg);
   border: 1px solid var(--line);
-  border-bottom: 0;
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
-  transform: translateY(101%);
+
+  transform: translate(-50%, calc(-50% + 20px)) scale(.985);
+  opacity: 0;
   visibility: hidden;
-  transition: transform 560ms var(--ease-out),
-              visibility 0s linear 560ms,
+  transition: transform 420ms var(--ease-out),
+              opacity 240ms var(--ease),
+              visibility 0s linear 420ms,
               background-color var(--theme-t) var(--ease),
               color var(--theme-t) var(--ease);
 }
 .sheet.is-open {
-  transform: translateY(0);
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
   visibility: visible;
-  transition: transform 560ms var(--ease-out),
+  transition: transform 420ms var(--ease-out),
+              opacity 200ms var(--ease),
               visibility 0s linear 0s,
               background-color var(--theme-t) var(--ease),
               color var(--theme-t) var(--ease);
 }
 
+/* Softens the cut where scrollable content meets the window's bottom edge.
+   js/main.js clears it once you've scrolled to the end. */
+.sheet::after {
+  content: "";
+  position: absolute; left: 1px; right: 1px; bottom: 1px;
+  height: 72px;
+  pointer-events: none;
+  border-radius: 0 0 calc(var(--radius-lg) - 1px) calc(var(--radius-lg) - 1px);
+  background: linear-gradient(to top,
+    var(--bg-elev) 12%,
+    color-mix(in srgb, var(--bg-elev) 60%, transparent) 55%,
+    transparent 100%);
+  opacity: 1;
+  transition: opacity 260ms var(--ease);
+}
+.sheet.is-end::after { opacity: 0; }
+
 .sheet__grab {
+  display: none;              /* a drag affordance only makes sense on a phone */
   width: 44px; height: 4px; border-radius: 999px;
   background: var(--line-firm);
   margin: 12px auto 0; flex: none;
@@ -887,8 +912,8 @@ body[data-headfont="passion"] .neon__reflection {
 .sheet__scroll {
   overflow-y: auto; -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  padding: clamp(26px, 4vw, 44px) clamp(20px, 4vw, 56px) clamp(40px, 6vw, 64px);
-  padding-bottom: max(clamp(40px, 6vw, 64px), env(safe-area-inset-bottom));
+  padding: clamp(30px, 4vw, 48px) clamp(20px, 4vw, 56px) clamp(56px, 7vw, 80px);
+  padding-bottom: max(clamp(56px, 7vw, 80px), env(safe-area-inset-bottom));
 }
 
 .sheet__eyebrow {
@@ -956,8 +981,29 @@ body[data-headfont="passion"] .neon__reflection {
 
 body.is-locked { overflow: hidden; }
 
+/* On a phone a centred window wastes the screen, so it stays a bottom sheet
+   there — rising from the edge, with the grab handle back. */
 @media (max-width: 620px) {
-  .sheet { max-height: 90svh; }
+  .sheet {
+    left: 0; top: auto; bottom: 0;
+    width: 100%;
+    max-height: 92svh;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    border-bottom: 0;
+    transform: translateY(101%);
+    opacity: 1;
+    transition: transform 480ms var(--ease-out),
+                visibility 0s linear 480ms,
+                background-color var(--theme-t) var(--ease);
+  }
+  .sheet.is-open {
+    transform: translateY(0);
+    opacity: 1;
+    transition: transform 480ms var(--ease-out),
+                visibility 0s linear 0s,
+                background-color var(--theme-t) var(--ease);
+  }
+  .sheet__grab { display: block; }
   .sheet__scroll { padding-top: 20px; }
 }
 
