@@ -361,7 +361,7 @@ body[data-theme="journal"] .texture { opacity: 1; }
 .portrait__figure {
   margin: 0;
   display: flex; flex-direction: column; align-items: center;
-  gap: clamp(24px, 4vw, 46px);
+  gap: 0;
 }
 
 /* Gray placeholder box — delete once a real <img> is in place */
@@ -399,6 +399,43 @@ body[data-theme="journal"] .texture { opacity: 1; }
 
 .portrait__caption h2 { font-size: clamp(24px, 3.4vw, 40px); margin: 0 auto 14px; max-width: 20ch; }
 .portrait__caption p { color: var(--fg-soft); max-width: 42ch; margin: 0 auto; text-wrap: balance; }
+
+/* ---- Handwritten aside above the photo ------------------------------------
+   Sits in the flow (so it can't overlap the picture at any width), pushed to
+   the left edge of the photo and tilted a couple of degrees so it reads as
+   something scribbled on rather than typeset.
+   -------------------------------------------------------------------------- */
+.photo-note {
+  align-self: flex-start;
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(2px, .6vw, 8px);
+  margin-left: clamp(10px, 4.5vw, 86px);
+  margin-bottom: clamp(-6px, -0.4vw, -2px);
+  color: var(--fg-soft);
+  transform: rotate(-3.5deg);
+  transform-origin: left bottom;
+  transition: color var(--theme-t) var(--ease);
+}
+
+.photo-note__text {
+  font-family: "Caveat", "Bradley Hand", "Segoe Script", cursive;
+  font-weight: 500;
+  font-size: clamp(21px, 2.3vw, 34px);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.photo-note__arrow {
+  width: clamp(26px, 2.6vw, 40px);
+  height: auto;
+  flex: none;
+  margin-bottom: -.35em;        /* lets the tip dip toward the photo */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photo-note { transform: none; }
+}
 
 /* ---------- 8. Work + segmented toggle ---------- */
 .work { padding-block: clamp(24px, 4vw, 50px) clamp(50px, 9vw, 110px); }
