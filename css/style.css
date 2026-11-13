@@ -799,6 +799,14 @@ body[data-headfont="passion"] .neon__reflection {
 .tile__media--empty {
   border-bottom: 1px dashed var(--line);
 }
+/* a project with its own artwork gets it inset rather than bled, so a lockup
+   that fills its frame isn't pressed against the card edges */
+.tile__media--art {
+  margin: 0 0 14px;
+  width: 100%;
+  border-radius: calc(var(--radius-lg) - 10px);
+  padding: 0;
+}
 
 /* Small "[PLACEHOLDER]" chip used on tiles + journal entries */
 .chip {
@@ -815,6 +823,12 @@ body[data-headfont="passion"] .neon__reflection {
 /* Entries render as cards in the shared .tiles grid; the full text opens in the
    bottom sheet. The old inline feed styles (.journal / .entry) are gone with it.
    Long-form prose inside the sheet still respects --prose-align. */
+
+/* a phone is too narrow for side-by-side — stack the shot above the caption */
+@media (max-width: 560px) {
+  .post { flex-direction: column; }
+  .post__shot { width: 100%; max-width: 260px; align-self: center; }
+}
 
 /* ---------- 11. About / Contact / Footer ---------- */
 .about, .contact { padding-block: clamp(50px, 9vw, 110px); }
@@ -886,7 +900,10 @@ body[data-headfont="passion"] .neon__reflection {
   width: min(100% - 2 * clamp(16px, 4vw, 60px), 960px);
   max-height: min(86svh, 940px);
   display: flex; flex-direction: column;
-  background: var(--bg-elev);
+  /* The window is the warm tone and the cards inside it are the light one —
+     the reverse of the rest of the site, so the writing samples read as paper
+     laid on a surface rather than panels sunk into one. */
+  background: var(--bg-sunk);
   color: var(--fg);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
@@ -921,8 +938,8 @@ body[data-headfont="passion"] .neon__reflection {
   pointer-events: none;
   border-radius: 0 0 calc(var(--radius-lg) - 1px) calc(var(--radius-lg) - 1px);
   background: linear-gradient(to top,
-    var(--bg-elev) 12%,
-    color-mix(in srgb, var(--bg-elev) 60%, transparent) 55%,
+    var(--bg-sunk) 12%,
+    color-mix(in srgb, var(--bg-sunk) 60%, transparent) 55%,
     transparent 100%);
   opacity: 1;
   transition: opacity 260ms var(--ease);
@@ -953,6 +970,30 @@ body[data-headfont="passion"] .neon__reflection {
   padding-bottom: max(clamp(56px, 7vw, 80px), env(safe-area-inset-bottom));
 }
 
+/* ---- Per-project artwork ---------------------------------------------------
+   Shown at its own size rather than stretched across the window. The client's
+   logotype is inside this artwork and the source is only 778px wide, so
+   full-bleeding it to a 960px window would visibly soften their mark — a
+   smaller, sharp image beats a big blurry one.
+   -------------------------------------------------------------------------- */
+.sheet__hero {
+  margin: 0 auto clamp(22px, 2.6vw, 30px);
+  width: min(100%, 440px);
+  border-radius: var(--radius);
+  /* the lockup almost fills its own artwork, so a frame in the piece's accent
+     gives it room and stops it reading as cropped */
+  padding: 12px;
+  background: var(--accent-piece);
+  box-shadow: 0 6px 20px -10px rgba(0, 0, 0, .35);
+}
+.sheet__hero-img {
+  display: block;
+  width: 100%; height: auto;
+  aspect-ratio: 16 / 10;
+  object-fit: contain;          /* contain, not cover — never crop the mark */
+  border-radius: calc(var(--radius) - 8px);
+}
+
 .sheet__eyebrow {
   font-family: var(--font-sans);
   font-size: 11px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
@@ -969,7 +1010,8 @@ body[data-headfont="passion"] .neon__reflection {
 .sheet__tags li {
   font-family: var(--font-sans); font-size: 12px; font-weight: 500;
   padding: 6px 12px; border-radius: 999px;
-  border: 1px solid var(--line); color: var(--fg-soft);
+  border: 1px solid color-mix(in srgb, var(--accent-piece, var(--fg)) 32%, transparent);
+  color: color-mix(in srgb, var(--accent-piece, var(--fg)) 78%, var(--fg-soft));
 }
 
 .sheet__meta {
@@ -986,14 +1028,21 @@ body[data-headfont="passion"] .neon__reflection {
 .sheet__meta dd { margin: 0; font-size: 15.5px; }
 
 .sheet__body {
-  max-width: 62ch; margin: 0 auto;
+  max-width: 780px; margin: 0 auto;
   font-size: clamp(16px, 1.7vw, 18px); line-height: 1.7;
   text-align: var(--prose-align);
 }
+/* prose keeps a readable measure; the sample cards below get the full width */
+.sheet__body > p,
+.sheet__body > ul,
+.sheet__body > h3 { max-width: 62ch; margin-inline: auto; }
 .sheet__body h3 {
   font-size: 13px; font-family: var(--font-sans); font-weight: 700;
-  letter-spacing: .14em; text-transform: uppercase; color: var(--fg-soft);
-  margin: 30px 0 12px;
+  letter-spacing: .14em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--accent-piece, var(--fg)) 82%, var(--fg-soft));
+  /* `auto`, not 0 — this shorthand comes after the rule that centres the
+     reading column, so a 0 here would knock the heading flush left */
+  margin: 30px auto 12px;
   text-align: center;
 }
 .sheet__body ul { margin: 0 auto 1.2em; padding-left: 1.15em; display: table; }
@@ -1002,9 +1051,149 @@ body[data-headfont="passion"] .neon__reflection {
 .sheet__excerpt {
   margin: 26px 0; padding: clamp(18px, 3vw, 26px);
   border-radius: var(--radius);
-  background: var(--bg-sunk);
+  background: var(--bg-elev);
   border-left: 3px solid var(--line-firm);
 }
+/* ---- Channel tabs inside a project window ---------------------------------
+   Reuses the page toggle's control. The track colour has to change though:
+   the window is now the warm tone, and --bg-sunk would vanish against it.
+   -------------------------------------------------------------------------- */
+.segmented--inline {
+  width: min(100%, 380px);
+  margin: clamp(26px, 3vw, 36px) auto clamp(20px, 2.4vw, 28px);
+  background: color-mix(in srgb, var(--fg) 7%, transparent);
+}
+.segmented--inline .segmented__pill { background: var(--bg-elev); }
+.segmented--inline .segmented__btn[aria-selected="true"] {
+  color: color-mix(in srgb, var(--accent-piece, var(--fg)) 85%, var(--fg));
+}
+
+.sheet__section { animation: panel-in 420ms var(--ease-out) both; }
+.sheet__section:focus-visible { outline-offset: 6px; }
+
+/* ---- A standalone asset: an email banner, a layout, a screen -------------- */
+.asset {
+  margin: 0 0 22px;
+  padding: clamp(12px, 1.6vw, 16px);
+  border-radius: var(--radius);
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .035);
+  transition: background-color var(--theme-t) var(--ease),
+              border-color var(--theme-t) var(--ease);
+}
+.asset:last-child { margin-bottom: 0; }
+.asset__img {
+  display: block;
+  width: 100%; height: auto;
+  border-radius: calc(var(--radius) - 10px);
+}
+.asset__cap { margin: 14px 2px 2px; text-align: left; }
+.asset__label {
+  font-family: var(--font-sans);
+  font-size: 11px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--accent-piece, var(--fg)) 72%, var(--fg-soft));
+  margin: 0 0 6px;
+}
+.asset__note {
+  font-size: 14.5px; line-height: 1.6;
+  color: var(--fg-soft);
+  margin: 0;
+}
+
+/* ---- Product listing card -------------------------------------------------
+   Shot on top, the way a retailer page stacks it. The shots are on white, so
+   they sit flush against the card with no visible seam.
+   -------------------------------------------------------------------------- */
+.product {
+  margin: 0 0 18px;
+  border-radius: var(--radius);
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .035);
+  overflow: hidden;
+  text-align: left;
+  transition: background-color var(--theme-t) var(--ease),
+              border-color var(--theme-t) var(--ease);
+}
+.product:last-child { margin-bottom: 0; }
+.product__shot {
+  display: block;
+  width: 100%; height: auto;
+  background: #fff;            /* the shots are cut out on white */
+}
+.product__copy { padding: clamp(16px, 2.2vw, 22px); }
+.product__name {
+  font-family: var(--font-sans);
+  font-size: 14px; font-weight: 700;
+  line-height: 1.35; letter-spacing: -0.005em;
+  margin: 0 0 10px;
+  color: color-mix(in srgb, var(--accent-piece, var(--fg)) 70%, var(--fg));
+}
+.product__text {
+  font-size: 15.5px; line-height: 1.65;
+  margin: 0;
+  color: var(--fg-soft);
+}
+
+/* ---- Writing-sample card inside the detail window -------------------------
+   Used by { caption: {...} } blocks in js/work-data.js. Sits a shade darker
+   than the window so a run of them reads as exhibits rather than body copy.
+   -------------------------------------------------------------------------- */
+.post {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(14px, 2vw, 22px);
+  margin: 0 0 16px;
+  padding: clamp(14px, 1.8vw, 18px);
+  border-radius: var(--radius);
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .035);
+  text-align: left;
+  transition: background-color var(--theme-t) var(--ease),
+              border-color var(--theme-t) var(--ease);
+}
+.post:last-child { margin-bottom: 0; }
+
+.post__shot {
+  flex: none;
+  width: clamp(120px, 26%, 230px);
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: calc(var(--radius) - 6px);
+  display: block;
+  background: var(--bg-sunk);
+}
+.post__copy { min-width: 0; }
+
+.post__school {
+  font-family: var(--font-sans);
+  font-size: 11px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--accent-piece, var(--fg)) 72%, var(--fg-soft));
+  margin: 0 0 10px;
+}
+.post__text {
+  font-size: clamp(16px, 1.75vw, 18.5px);
+  line-height: 1.5;
+  margin: 0 0 12px;
+}
+.post__meta {
+  font-family: var(--font-sans);
+  font-size: 13px; line-height: 1.6;
+  color: var(--fg-soft);
+  margin: 0;
+}
+.post__note {
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 13.5px; font-style: italic;
+  color: var(--fg-soft);
+}
+
 .sheet__excerpt h3 { margin-top: 0; }
 .sheet__excerpt p { margin: 0 0 .7em; }
 .sheet__excerpt p:last-child { margin: 0; }

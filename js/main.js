@@ -80,6 +80,72 @@
           ul.appendChild(li);
         });
         container.appendChild(ul);
+      } else if (block && block.asset) {
+        var a = block.asset;
+        var fig = el('figure', 'asset');
+        var ai = document.createElement('img');
+        ai.className = 'asset__img';
+        ai.src = a.image;
+        ai.alt = a.alt || '';
+        ai.loading = 'lazy';
+        ai.decoding = 'async';
+        fig.appendChild(ai);
+        if (a.label || a.note) {
+          var figcap = el('figcaption', 'asset__cap');
+          if (a.label) { figcap.appendChild(el('p', 'asset__label', a.label)); }
+          if (a.note) { figcap.appendChild(el('p', 'asset__note', a.note)); }
+          fig.appendChild(figcap);
+        }
+        container.appendChild(fig);
+      } else if (block && block.product) {
+        var pr = block.product;
+        var pcard = el('div', 'product');
+        if (pr.image) {
+          var pi = document.createElement('img');
+          pi.className = 'product__shot';
+          pi.src = pr.image;
+          pi.alt = pr.alt || '';
+          pi.loading = 'lazy';
+          pi.decoding = 'async';
+          pcard.appendChild(pi);
+        }
+        var pbody = el('div', 'product__copy');
+        pbody.appendChild(el('h4', 'product__name', pr.name || ''));
+        pbody.appendChild(el('p', 'product__text', pr.text || ''));
+        pcard.appendChild(pbody);
+        container.appendChild(pcard);
+      } else if (block && block.caption) {
+        /* A writing sample shown as a card. Inserted as text, never parsed as
+           markup, so quotes and emoji in real copy survive intact. */
+        var c = block.caption;
+        var card = el('div', 'post');
+
+        /* lazy — these sit inside a closed window, so they cost nothing until
+           someone actually opens the project */
+        if (c.image) {
+          var shot = document.createElement('img');
+          shot.className = 'post__shot';
+          shot.src = c.image;
+          shot.alt = c.alt || '';
+          shot.loading = 'lazy';
+          shot.decoding = 'async';
+          shot.width = 560; shot.height = 700;
+          card.appendChild(shot);
+        }
+
+        var copy = el('div', 'post__copy');
+        if (c.school) { copy.appendChild(el('p', 'post__school', c.school)); }
+        copy.appendChild(el('p', 'post__text', c.text || ''));
+        if (c.featured || c.tags) {
+          var meta = el('p', 'post__meta');
+          if (c.featured) { meta.appendChild(document.createTextNode('Featured: ' + c.featured)); }
+          if (c.featured && c.tags) { meta.appendChild(document.createElement('br')); }
+          if (c.tags) { meta.appendChild(document.createTextNode(c.tags)); }
+          copy.appendChild(meta);
+        }
+        if (c.note) { copy.appendChild(el('p', 'post__note', c.note)); }
+        card.appendChild(copy);
+        container.appendChild(card);
       }
     });
   }
@@ -127,6 +193,7 @@
     if (item.media) {
       var media = el('div', 'tile__media');
       if (item.media.image) {
+        media.classList.add('tile__media--art');
         var img = document.createElement('img');
         img.src = item.media.image;
         img.alt = item.media.alt || '';
@@ -331,10 +398,78 @@
   var introEl = $('#work-intro');
   var themeMeta = $('meta[name="theme-color"]');
 
-  function movePill(btn) {
-    if (!pill || !btn) { return; }
-    pill.style.width = btn.offsetWidth + 'px';
-    pill.style.transform = 'translateX(' + btn.offsetLeft + 'px)';
+  function movePillTo(thumb, btn) {
+    if (!thumb || !btn) { return; }
+    thumb.style.width = btn.offsetWidth + 'px';
+    thumb.style.transform = 'translateX(' + btn.offsetLeft + 'px)';
+  }
+
+  function movePill(btn) { movePillTo(pill, btn); }
+
+  /* ---------------------------------------------------------------------------
+     Channel tabs inside a project window. Same control as the page toggle, same
+     keyboard contract: roving tabindex, arrows/Home/End, one panel visible.
+     ------------------------------------------------------------------------- */
+  function buildSectionTabs(sections, mount, uid) {
+    var list = el('div', 'segmented segmented--inline');
+    list.setAttribute('role', 'tablist');
+    list.setAttribute('aria-label', 'Channels in this project');
+
+    var thumb = el('span', 'segmented__pill');
+    thumb.setAttribute('aria-hidden', 'true');
+    list.appendChild(thumb);
+    list.style.gridTemplateColumns = 'repeat(' + sections.length + ', 1fr)';
+
+    var btns = [], panels = [];
+
+    sections.forEach(function (sec, i) {
+      var b = el('button', 'segmented__btn', sec.label);
+      b.type = 'button';
+      b.setAttribute('role', 'tab');
+      b.id = uid + '-tab-' + sec.id;
+      b.setAttribute('aria-controls', uid + '-panel-' + sec.id);
+      b.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
+      b.tabIndex = i === 0 ? 0 : -1;
+      list.appendChild(b);
+      btns.push(b);
+
+      var panel = el('div', 'sheet__section');
+      panel.id = uid + '-panel-' + sec.id;
+      panel.setAttribute('role', 'tabpanel');
+      panel.setAttribute('aria-labelledby', b.id);
+      panel.tabIndex = 0;
+      renderBody(panel, sec.blocks);
+      if (i !== 0) { panel.hidden = true; }
+      panels.push(panel);
+    });
+
+    function select(i, focus) {
+      btns.forEach(function (b, j) {
+        b.setAttribute('aria-selected', j === i ? 'true' : 'false');
+        b.tabIndex = j === i ? 0 : -1;
+        panels[j].hidden = j !== i;
+      });
+      movePillTo(thumb, btns[i]);
+      if (focus) { btns[i].focus(); }
+      requestAnimationFrame(updateScrollEnd);   /* panel height changed */
+    }
+
+    btns.forEach(function (b, i) {
+      b.addEventListener('click', function () { select(i); });
+      b.addEventListener('keydown', function (e) {
+        var next = null;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { next = (i + 1) % btns.length; }
+        else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { next = (i - 1 + btns.length) % btns.length; }
+        else if (e.key === 'Home') { next = 0; }
+        else if (e.key === 'End') { next = btns.length - 1; }
+        if (next !== null) { e.preventDefault(); select(next, true); }
+      });
+    });
+
+    mount.appendChild(list);
+    panels.forEach(function (p) { mount.appendChild(p); });
+    /* the control has no width until it's in the document */
+    requestAnimationFrame(function () { movePillTo(thumb, btns[0]); });
   }
 
   function selectTab(btn, opts) {
@@ -460,6 +595,29 @@
   }
 
   function fillSheet(item) {
+    /* Per-project accent. Falls back to the theme's own ink when a project
+       doesn't set one, so every rule using it still works. */
+    sheet.style.setProperty('--accent-piece', item.accent || 'var(--fg)');
+    sheet.classList.toggle('has-hero', !!(item.hero && item.hero.image));
+
+    var hero = $('#sheet-hero');
+    if (item.hero && item.hero.image) {
+      hero.innerHTML = '';
+      var art = document.createElement('img');
+      art.className = 'sheet__hero-img';
+      art.src = item.hero.image;
+      art.alt = item.hero.alt || '';
+      hero.appendChild(art);
+      hero.hidden = false;
+    } else {
+      hero.hidden = true;
+      hero.innerHTML = '';
+    }
+
+    /* Name the dialog explicitly rather than relying on the heading element,
+       which some layouts hide. aria-label wins over aria-labelledby. */
+    sheet.setAttribute('aria-label', item.title || 'Project details');
+
     $('#sheet-eyebrow').textContent = item.eyebrow || '';
     $('#sheet-title').textContent = item.title || '';
 
@@ -485,6 +643,11 @@
       item.plainBody.forEach(function (para) { body.appendChild(el('p', null, para)); });
     } else {
       renderBody(body, item.body);
+    }
+
+    /* Channel tabs, when a project is split across them */
+    if (item.sections && item.sections.length) {
+      buildSectionTabs(item.sections, body, 'sec-' + (item.id || 'x'));
     }
 
     /* Optional pull-out block of sample copy */
